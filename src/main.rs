@@ -1,4 +1,7 @@
 use rand::Rng;
+use rand::seq::SliceRandom;
+use rand::thread_rng;
+use std::time::{SystemTime};
 
 
 #[derive(Copy, Clone, Debug)]
@@ -14,7 +17,7 @@ pub struct Position {
 
 fn main() {
 	//println!("Hello, sudoku!");
-	let board = Board {
+	/*let board = Board {
 		squares: [
 			[2,3,5,0,0,0,0,7,0],
 			[0,0,8,0,0,0,0,0,0],
@@ -26,6 +29,19 @@ fn main() {
 			[0,0,1,0,0,0,0,0,0],
 			[9,0,0,1,0,0,0,2,3],
 		]
+	};*/
+	let board = Board {
+		squares: [
+			[6,0,0,0,0,8,9,4,0],
+			[9,0,0,0,0,6,1,0,0],
+			[0,7,0,0,4,0,0,0,0],
+			[2,0,0,6,1,0,0,0,0],
+			[0,0,0,0,0,0,2,0,0],
+			[0,8,9,0,0,2,0,0,0],
+			[0,0,0,0,6,0,0,0,5],
+			[0,0,0,0,0,0,0,3,0],
+			[8,0,0,0,0,1,6,0,0],
+		]
 	};
 	solve( board );
 }
@@ -36,16 +52,25 @@ fn solve( input:Board ) {
 	let mut board_solved:Board = input.clone();
 	let mut solved:bool = false;
 	let mut mode:u8 = 1;
+	let start = SystemTime::now();
+	let mut stepcounter:u32 = 0;
 
 	while solved == false {
 	//for _z in 0..50000 {
 		solved = step( &mut board, &mut board_solved, &mut mode );
+		stepcounter += 1;
 		if solved {
 			break;
 		}
 	}
 
+	let end = SystemTime::now();
+
 	render( board );
+
+	let elapsed = end.duration_since( start );
+	println!( "Solved in {} ms ({} steps).", elapsed.unwrap_or_default().as_millis(), stepcounter );
+
 }
 
 
@@ -109,6 +134,10 @@ fn get_empty_positions( board:Board ) -> Vec<Position> {
 			}
 		}
 	}
+
+	let mut rng = thread_rng();
+	empty.shuffle(&mut rng);
+
 	return empty;
 }
 
