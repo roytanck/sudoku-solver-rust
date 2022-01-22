@@ -49,11 +49,19 @@ fn main() {
 		// iterate over the loaded fiel by line
 		for ( y, line ) in reader.lines().enumerate() {
 			let row = line.unwrap();
-			// iterate ovet the characters of the current line
-			for ( x, c ) in row.chars().enumerate() {
-				// if not out of bounds, put the value into the board 
-				if x < 9 {
-					board.squares[y][x] = c as i8 - 0x30; // 0x30 is 0's ascii table offset
+			if y < 9 {
+				// iterate ovet the characters of the current line
+				for ( x, c ) in row.chars().enumerate() {
+					// if not out of bounds, put the value into the board 
+					if x < 9 {
+						let val = c as i8 - 0x30; // 0x30 is 0's ascii table offset
+						if val >= 0 && val < 9 {
+							board.squares[y][x] = val;	
+						} else {
+							board.squares[y][x] = 0;
+						}
+						
+					}
 				}
 			}
 		}	
