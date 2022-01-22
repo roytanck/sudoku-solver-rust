@@ -14,7 +14,7 @@ pub struct Position {
 
 fn main() {
 	println!("Hello, sudoku!");
-	let mut board = Board {
+	let board = Board {
 		squares: [
 			[2,3,5,0,0,0,0,7,0],
 			[0,0,8,0,0,0,0,0,0],
@@ -27,67 +27,80 @@ fn main() {
 			[9,0,0,1,0,0,0,2,3],
 		]
 	};
-	let mut board_solved:Board = board.clone();
-	let mut solved = 0;
-	let mut mode = 1;
+	solve( board );
+}
+
+
+fn solve( input:Board ) {
+	let mut board:Board = input.clone();
+	let mut board_solved:Board = input.clone();
+	let mut solved:bool = false;
+	let mut mode:u8 = 1;
 
 	//render( board_solved );
 
 	//while solved == 0 {
 	for _z in 0..50000 {
-
-		// find empty positions on the board
-		let empty = get_empty_positions( board );
-		let nrof_empty = count_empty_positions( empty );
-		if nrof_empty < 1 {
-			println!("success");
-			solved = 1;
-		}
-		println!( "{:?} empty squares", nrof_empty );
-
-		// loop through the empty positions, to find the number of possible answers
-		let mut i = 0;
-		let mut lowest = 10;
-		let mut best_empty_position = Position { x:-1, y:-1 };
-		let mut best_empty_position_values:[i8; 9] = [-1; 9];
-		let mut best_empty_position_nrof_values:u8 = 10;
-		while empty[i].x != -1 {
-			//println!( "{:?}", empty[i] );
-			let possible_values = get_possible_values( board, empty[i] );
-			//println!( "{:?}", possible_values );
-			let nrof_values = count_possible_values( possible_values );
-
-			//println!( "{:?}", nrof_values );
-			if nrof_values < lowest {
-				best_empty_position = empty[i];
-				best_empty_position_values = possible_values;
-				best_empty_position_nrof_values = nrof_values;
-				lowest = nrof_values;
-			}
-			i += 1;
-		}
-		println!( "{:?}", best_empty_position );
-
-		if best_empty_position_nrof_values < 1 {
-			println!("Oops");
-			board = board_solved.clone();
-		} else {
-
-			if best_empty_position_nrof_values > 1 {
-				mode = 2;
-			}
-			let val = select_random_value( best_empty_position_values );
-			board.squares[ best_empty_position.y as usize ][ best_empty_position.x as usize ] = val;
-			if mode == 1 {
-				// if there's only one option (mode 1), store the guess
-				board_solved = board.clone();
-			}
-			println!("{:?} at {:?}", val, best_empty_position);
-		}
-
-		render( board );
+		solved = step( &mut board, &mut board_solved, &mut mode );
 	}
+
 	render( board );
+}
+
+
+fn step( board: &mut Board, board_solved: &mut Board, mode: &mut u8 ) -> bool {
+
+	// find empty positions on the board
+	let empty = get_empty_positions( *board );
+	let nrof_empty = count_empty_positions( empty );
+	if nrof_empty < 1 {
+		println!("success");
+		return true;
+	}
+	println!( "{:?} empty squares", nrof_empty );
+
+	// loop through the empty positions, to find the number of possible answers
+	let mut i = 0;
+	let mut lowest = 10;
+	let mut best_empty_position = Position { x:-1, y:-1 };
+	let mut best_empty_position_values:[i8; 9] = [-1; 9];
+	let mut best_empty_position_nrof_values:u8 = 10;
+	while empty[i].x != -1 {
+		//println!( "{:?}", empty[i] );
+		let possible_values = get_possible_values( *board, empty[i] );
+		//println!( "{:?}", possible_values );
+		let nrof_values = count_possible_values( possible_values );
+
+		//println!( "{:?}", nrof_values );
+		if nrof_values < lowest {
+			best_empty_position = empty[i];
+			best_empty_position_values = possible_values;
+			best_empty_position_nrof_values = nrof_values;
+			lowest = nrof_values;
+		}
+		i += 1;
+	}
+	//println!( "{:?}", best_empty_position );
+
+	if best_empty_position_nrof_values < 1 {
+		println!("Oops");
+		*board = board_solved.clone();
+	} else {
+
+		if best_empty_position_nrof_values > 1 {
+			*mode = 2;
+		}
+		let val = select_random_value( best_empty_position_values );
+		board.squares[ best_empty_position.y as usize ][ best_empty_position.x as usize ] = val;
+		if *mode == 1 {
+			// if there's only one option (mode 1), store the guess
+			*board_solved = board.clone();
+		}
+		println!("{:?} at {:?}", val, best_empty_position);
+	}
+
+	//render( board );
+	return false;
 }
 
 
