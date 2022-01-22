@@ -42,6 +42,9 @@ fn solve( input:Board ) {
 	//while solved == 0 {
 	for _z in 0..50000 {
 		solved = step( &mut board, &mut board_solved, &mut mode );
+		if solved {
+			break;
+		}
 	}
 
 	render( board );
@@ -52,12 +55,15 @@ fn step( board: &mut Board, board_solved: &mut Board, mode: &mut u8 ) -> bool {
 
 	// find empty positions on the board
 	let empty = get_empty_positions( *board );
-	let nrof_empty = count_empty_positions( empty );
-	if nrof_empty < 1 {
+	//let nrof_empty = count_empty_positions( empty );
+	
+	//let nrof_empty = empty.len();
+
+	if empty.len() < 1 {
 		println!("success");
 		return true;
 	}
-	println!( "{:?} empty squares", nrof_empty );
+	//println!( "{:?} empty squares", empty.len() );
 
 	// loop through the empty positions, to find the number of possible answers
 	let mut i = 0;
@@ -65,20 +71,20 @@ fn step( board: &mut Board, board_solved: &mut Board, mode: &mut u8 ) -> bool {
 	let mut best_empty_position = Position { x:-1, y:-1 };
 	let mut best_empty_position_values:[i8; 9] = [-1; 9];
 	let mut best_empty_position_nrof_values:u8 = 10;
-	while empty[i].x != -1 {
+	for pos in empty.iter() {
 		//println!( "{:?}", empty[i] );
-		let possible_values = get_possible_values( *board, empty[i] );
+		let possible_values = get_possible_values( *board, *pos );
 		//println!( "{:?}", possible_values );
 		let nrof_values = count_possible_values( possible_values );
 
 		//println!( "{:?}", nrof_values );
 		if nrof_values < lowest {
-			best_empty_position = empty[i];
+			best_empty_position = *pos;
 			best_empty_position_values = possible_values;
 			best_empty_position_nrof_values = nrof_values;
 			lowest = nrof_values;
 		}
-		i += 1;
+		//i += 1;
 	}
 	//println!( "{:?}", best_empty_position );
 
@@ -96,7 +102,7 @@ fn step( board: &mut Board, board_solved: &mut Board, mode: &mut u8 ) -> bool {
 			// if there's only one option (mode 1), store the guess
 			*board_solved = board.clone();
 		}
-		println!("{:?} at {:?}", val, best_empty_position);
+		//println!("{:?} at {:?}", val, best_empty_position);
 	}
 
 	//render( board );
@@ -112,40 +118,16 @@ fn render( board:Board ){
 }
 
 
-fn get_empty_positions( board:Board ) -> [Position; 81] {
-	let mut empty = [ Position { x:-1, y: -1 }; 81];
-	let mut counter = 0;
-	empty[0] = Position {
-		x: 7,
-		y: 7
-	};
-
+fn get_empty_positions( board:Board ) -> Vec<Position> {
+	let mut empty = Vec::<Position>::with_capacity(81);
 	for y in 0..board.squares.len() {
 		for x in 0..board.squares[y].len() {
-			//println!("{:?}", board.squares[y][x]);
 			if board.squares[y][x] == 0 {
-				//println!("nul");
-				empty[ counter ] = Position {
-					x: x as i8,
-					y: y as i8
-				};
-				counter += 1;
+				empty.push( Position { x:x as i8, y:y as i8 } );
 			}
 		}
 	}
-
 	return empty;
-}
-
-
-fn count_empty_positions( positions:[Position; 81] ) -> u8 {
-	let mut counter:u8 = 0;
-	for i in 0..positions.len() {
-		if positions[i].x != -1 {
-			counter += 1;
-		}
-	}
-	return counter;
 }
 
 
