@@ -13,7 +13,7 @@ pub struct Position {
 }
 
 fn main() {
-	println!("Hello, sudoku!");
+	//println!("Hello, sudoku!");
 	let board = Board {
 		squares: [
 			[2,3,5,0,0,0,0,7,0],
@@ -37,10 +37,8 @@ fn solve( input:Board ) {
 	let mut solved:bool = false;
 	let mut mode:u8 = 1;
 
-	//render( board_solved );
-
-	//while solved == 0 {
-	for _z in 0..50000 {
+	while solved == false {
+	//for _z in 0..50000 {
 		solved = step( &mut board, &mut board_solved, &mut mode );
 		if solved {
 			break;
@@ -55,63 +53,47 @@ fn step( board: &mut Board, board_solved: &mut Board, mode: &mut u8 ) -> bool {
 
 	// find empty positions on the board
 	let empty = get_empty_positions( *board );
-	//let nrof_empty = count_empty_positions( empty );
-	
-	//let nrof_empty = empty.len();
 
+	// if there are none, the board is solved
 	if empty.len() < 1 {
-		println!("success");
 		return true;
 	}
-	//println!( "{:?} empty squares", empty.len() );
 
 	// loop through the empty positions, to find the number of possible answers
-	let mut i = 0;
 	let mut lowest = 10;
 	let mut best_empty_position = Position { x:-1, y:-1 };
-	let mut best_empty_position_values:[i8; 9] = [-1; 9];
-	let mut best_empty_position_nrof_values:u8 = 10;
+	let mut best_empty_position_values:Vec<i8> = Vec::with_capacity(81);
+	
 	for pos in empty.iter() {
-		//println!( "{:?}", empty[i] );
-		let possible_values = get_possible_values( *board, *pos );
-		//println!( "{:?}", possible_values );
-		let nrof_values = count_possible_values( possible_values );
+		let possible_values:Vec<i8> = get_possible_values( *board, *pos );
 
-		//println!( "{:?}", nrof_values );
-		if nrof_values < lowest {
+		if possible_values.len() < lowest {
 			best_empty_position = *pos;
-			best_empty_position_values = possible_values;
-			best_empty_position_nrof_values = nrof_values;
-			lowest = nrof_values;
+			best_empty_position_values = Vec::from( possible_values );
+			lowest = best_empty_position_values.len();
 		}
-		//i += 1;
 	}
-	//println!( "{:?}", best_empty_position );
 
-	if best_empty_position_nrof_values < 1 {
-		println!("Oops");
+	if best_empty_position_values.len() < 1 {
+		// return board to previously know correct state
 		*board = board_solved.clone();
 	} else {
-
-		if best_empty_position_nrof_values > 1 {
+		if best_empty_position_values.len() > 1 {
 			*mode = 2;
 		}
-		let val = select_random_value( best_empty_position_values );
+		let val = select_random_value( &best_empty_position_values );
 		board.squares[ best_empty_position.y as usize ][ best_empty_position.x as usize ] = val;
 		if *mode == 1 {
 			// if there's only one option (mode 1), store the guess
 			*board_solved = board.clone();
 		}
-		//println!("{:?} at {:?}", val, best_empty_position);
 	}
 
-	//render( board );
 	return false;
 }
 
 
 fn render( board:Board ){
-	//println!("{:?}", board);
 	for i in 0..board.squares.len() {
 		println!("{:?}", board.squares[i]);
 	}
@@ -131,20 +113,27 @@ fn get_empty_positions( board:Board ) -> Vec<Position> {
 }
 
 
-fn get_possible_values( board:Board, pos:Position ) -> [i8; 9] {
-	let mut values: [i8; 9] = [1,2,3,4,5,6,7,8,9];
+fn get_possible_values( board:Board, pos:Position ) -> Vec<i8> {
+
+	let mut excluded_values: Vec<i8> = Vec::with_capacity(9);
+
 	// check row
 	for x in 0..9 {
 		if board.squares[ pos.y as usize ][ x as usize ] != 0 {
 			let val = board.squares[ pos.y as usize ][ x as usize ];
-			values[ val as usize - 1 ] = -1;
+			//values[ val as usize - 1 ] = -1;
+			if !excluded_values.contains( &val ) {
+				excluded_values.push( val );
+			}
 		}
 	}
 	//check column
 	for y in 0..9 {
 		if board.squares[ y as usize ][ pos.x as usize ] != 0 {
 			let val = board.squares[ y as usize ][ pos.x as usize ];
-			values[ val as usize - 1 ] = -1;
+			if !excluded_values.contains( &val ) {
+				excluded_values.push( val );
+			}
 		}
 	}
 	// check square
@@ -154,37 +143,27 @@ fn get_possible_values( board:Board, pos:Position ) -> [i8; 9] {
 		for x in startx..(startx+3) {
 			if board.squares[ y as usize ][ x as usize ] != 0 {
 				let val = board.squares[ y as usize ][ x as usize ];
-				values[ val as usize - 1 ] = -1;
+				if !excluded_values.contains( &val ) {
+					excluded_values.push( val );
+				}
 			}
 		}
 	}
-	return values;
-}
-
-
-fn count_possible_values( values:[i8; 9] ) -> u8 {
-	let mut counter:u8 = 0;
-	for i in 0..values.len() {
-		if values[i] != -1 {
-			counter += 1;
+	// create a new vector with all non-excluded values
+	let mut result: Vec<i8> = Vec::with_capacity(9);
+	for i in 1..10 {
+		if !excluded_values.contains( &i ) {
+			result.push( i );
 		}
 	}
-	return counter;
+
+	return result;
 }
 
 
-fn select_random_value( values:[i8; 9] ) -> i8 {
-	let mut counter:u8 = 0;
-	let max = count_possible_values( values );
+
+fn select_random_value( values:&Vec<i8> ) -> i8 {
 	let mut rng = rand::thread_rng();
-	let random_nr = rng.gen_range(0..max);
-	for i in 0..values.len() {
-		if values[i] != -1 {
-			if counter == random_nr {
-				return values[i];
-			}
-			counter += 1;
-		}
-	}
-	return 1;
+	let random_nr = rng.gen_range( 0..values.len() );
+	return values[ random_nr ];
 }
