@@ -2,6 +2,11 @@ use rand::Rng;
 use rand::seq::SliceRandom;
 use rand::thread_rng;
 use std::time::{SystemTime};
+use std::fs::File;
+use std::io::BufReader;
+use std::io::BufRead;
+use std::env;
+
 
 
 #[derive(Copy, Clone, Debug)]
@@ -17,7 +22,9 @@ pub struct Position {
 
 fn main() {
 	//println!("Hello, sudoku!");
-	/*let board = Board {
+
+	// default puzzle
+	let mut board = Board {
 		squares: [
 			[2,3,5,0,0,0,0,7,0],
 			[0,0,8,0,0,0,0,0,0],
@@ -29,20 +36,35 @@ fn main() {
 			[0,0,1,0,0,0,0,0,0],
 			[9,0,0,1,0,0,0,2,3],
 		]
-	};*/
-	let board = Board {
-		squares: [
-			[6,0,0,0,0,8,9,4,0],
-			[9,0,0,0,0,6,1,0,0],
-			[0,7,0,0,4,0,0,0,0],
-			[2,0,0,6,1,0,0,0,0],
-			[0,0,0,0,0,0,2,0,0],
-			[0,8,9,0,0,2,0,0,0],
-			[0,0,0,0,6,0,0,0,5],
-			[0,0,0,0,0,0,0,3,0],
-			[8,0,0,0,0,1,6,0,0],
-		]
 	};
+
+	// get command line arguments
+	let args: Vec<String> = env::args().collect();
+	let lastarg:&String = &args[ args.len()-1 ];
+	// Check if the last argument is a txt file
+	if lastarg.contains(".txt") {
+		let filename = lastarg;
+		let file = File::open( filename ).expect("file not found!");
+		let reader = BufReader::new(file);
+		// iterate over the loaded fiel by line
+		for ( y, line ) in reader.lines().enumerate() {
+			let row = line.unwrap();
+			// iterate ovet the characters of the current line
+			for ( x, c ) in row.chars().enumerate() {
+				// if not out of bounds, put the value into the board 
+				if x < 9 {
+					board.squares[y][x] = c as i8 - 0x30; // 0x30 is 0's ascii table offset
+				}
+			}
+		}	
+	}
+
+	println!("\nInput:\n");
+
+	render( board );
+
+	println!("\nSolution:\n");
+
 	solve( board );
 }
 
@@ -56,7 +78,6 @@ fn solve( input:Board ) {
 	let mut stepcounter:u32 = 0;
 
 	while solved == false {
-	//for _z in 0..50000 {
 		solved = step( &mut board, &mut board_solved, &mut mode );
 		stepcounter += 1;
 		if solved {
@@ -69,7 +90,7 @@ fn solve( input:Board ) {
 	render( board );
 
 	let elapsed = end.duration_since( start );
-	println!( "Solved in {} ms ({} steps).", elapsed.unwrap_or_default().as_millis(), stepcounter );
+	println!( "\nSolved in {} ms ({} steps).\n", elapsed.unwrap_or_default().as_millis(), stepcounter );
 
 }
 
