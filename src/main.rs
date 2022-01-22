@@ -20,8 +20,8 @@ pub struct Position {
 	y: i8    
 }
 
+
 fn main() {
-	//println!("Hello, sudoku!");
 
 	// default puzzle
 	let mut board = Board {
@@ -60,7 +60,6 @@ fn main() {
 						} else {
 							board.squares[y][x] = 0;
 						}
-						
 					}
 				}
 			}
@@ -68,38 +67,37 @@ fn main() {
 	}
 
 	println!("\nInput:\n");
-
 	render( board );
 
-	println!("\nSolution:\n");
+	let ( solution, stepcounter, elapsed ) = solve( board );
 
-	solve( board );
+	println!("\nSolution:\n");
+	render( solution );
+	println!( "\nSolved in {} ms ({} steps).\n", elapsed, stepcounter );
 }
 
 
-fn solve( input:Board ) {
+fn solve( input:Board ) -> ( Board, u32, u128 ) {
+	// create a mutable copy of the input board
 	let mut board:Board = input.clone();
+	// create another copy to store partial solves
 	let mut board_solved:Board = input.clone();
+	// some things to keep track of
 	let mut solved:bool = false;
 	let mut mode:u8 = 1;
-	let start = SystemTime::now();
 	let mut stepcounter:u32 = 0;
+	let start = SystemTime::now();
 
 	while solved == false {
 		solved = step( &mut board, &mut board_solved, &mut mode );
 		stepcounter += 1;
-		if solved {
-			break;
-		}
 	}
 
 	let end = SystemTime::now();
-
-	render( board );
-
 	let elapsed = end.duration_since( start );
-	println!( "\nSolved in {} ms ({} steps).\n", elapsed.unwrap_or_default().as_millis(), stepcounter );
 
+	// return the solution, steps required and milliseconds as tuple
+	( board, stepcounter, elapsed.unwrap_or_default().as_millis() )
 }
 
 
@@ -149,7 +147,7 @@ fn step( board: &mut Board, board_solved: &mut Board, mode: &mut u8 ) -> bool {
 
 fn render( board:Board ){
 	for i in 0..board.squares.len() {
-		println!("{:?}", board.squares[i]);
+		println!("  {:?}", board.squares[i]);
 	}
 }
 
@@ -163,7 +161,7 @@ fn get_empty_positions( board:Board ) -> Vec<Position> {
 			}
 		}
 	}
-
+	// randomize before returning the vector, to make guesses more random
 	let mut rng = thread_rng();
 	empty.shuffle(&mut rng);
 
