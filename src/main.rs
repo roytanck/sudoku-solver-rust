@@ -112,7 +112,7 @@ fn step( board: &mut Board, board_solved: &mut Board, mode: &mut u8 ) -> bool {
 	}
 
 	// loop through the empty positions, to find the number of possible answers
-	let mut lowest = 10;
+	/*let mut lowest = 10;
 	let mut best_empty_position = Position { x:-1, y:-1 };
 	let mut best_empty_position_values:Vec<i8> = Vec::with_capacity(81);
 	
@@ -124,7 +124,8 @@ fn step( board: &mut Board, board_solved: &mut Board, mode: &mut u8 ) -> bool {
 			best_empty_position_values = Vec::from( possible_values );
 			lowest = best_empty_position_values.len();
 		}
-	}
+	}*/
+	let ( best_empty_position, best_empty_position_values ) = get_best_empty_position( &empty, &board );
 
 	if best_empty_position_values.len() < 1 {
 		// return board to previously know correct state
@@ -153,6 +154,7 @@ fn render( board:Board ){
 
 
 fn get_empty_positions( board:Board ) -> Vec<Position> {
+	// loop through the empty positions, to find the number of possible answers
 	let mut empty = Vec::<Position>::with_capacity(81);
 	for y in 0..board.squares.len() {
 		for x in 0..board.squares[y].len() {
@@ -166,6 +168,25 @@ fn get_empty_positions( board:Board ) -> Vec<Position> {
 	empty.shuffle(&mut rng);
 
 	return empty;
+}
+
+
+fn get_best_empty_position( empty:&Vec<Position>, board:&Board ) -> ( Position, Vec<i8> ) {
+	let mut lowest = 10;
+	let mut best_empty_position = Position { x:-1, y:-1 };
+	let mut best_empty_position_values:Vec<i8> = Vec::with_capacity(81);
+	
+	for pos in empty.iter() {
+		let possible_values:Vec<i8> = get_possible_values( *board, *pos );
+
+		if possible_values.len() < lowest {
+			best_empty_position = *pos;
+			best_empty_position_values = Vec::from( possible_values );
+			lowest = best_empty_position_values.len();
+		}
+	}
+
+	( best_empty_position, best_empty_position_values )
 }
 
 
