@@ -69,7 +69,11 @@ fn main() {
 	let benchmark:u32 = args.value_of("benchmark").unwrap_or( "0" ).parse::<u32>().unwrap();
 
 	// read the input file
-	let file = File::open( filename ).expect("file not found!");
+	let file = match File::open( &filename ) {
+		Err( why ) => { println!( "Unable to open file {}: {}.", filename, why ); return; },
+		Ok( file ) => file,
+	};
+
 	let reader = BufReader::new(file);
 	// iterate over the loaded file by line
 	for ( y, line ) in reader.lines().enumerate() {
