@@ -73,8 +73,8 @@ fn main() {
 		Err( why ) => { println!( "Unable to open file {}: {}.", filename, why ); return; },
 		Ok( file ) => file,
 	};
-
 	let reader = BufReader::new(file);
+
 	// iterate over the loaded file by line
 	for ( y, line ) in reader.lines().enumerate() {
 		let row = line.unwrap();
@@ -92,13 +92,15 @@ fn main() {
 				}
 			}
 		}
-	}	
+	}
 
+	// pre-solve output
 	if verbose && benchmark <= 1 {
 		println!("\nInput:\n");
 		render( board, verbose );
 	}
 
+	// initialize stats variables
 	let mut steptotal:u32 = 0;
 	let start = SystemTime::now();
 
@@ -110,12 +112,15 @@ fn main() {
 		}
 	}
 
+	// solve the puzzle
 	let ( solution, stepcounter ) = solve( board );
 	steptotal += stepcounter;
 
+	// Calculate elapsed time
 	let end = SystemTime::now();
 	let elapsed = end.duration_since( start ).unwrap_or_default().as_millis();
 
+	// post-solve output
 	if benchmark > 1 {
 		if verbose {
 			println!( "Solved {} times\nTotal time: {} ms\nTotal steps: {}", benchmark, elapsed, steptotal );
