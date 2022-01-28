@@ -66,7 +66,7 @@ fn main() {
 
 	let filename = args.value_of("input").unwrap_or("extreme.txt");
 	let verbose:bool = args.is_present("verbose");
-	let benchmark:i32 = args.value_of("benchmark").unwrap_or( "0" ).parse::<i32>().unwrap();
+	let benchmark:u32 = args.value_of("benchmark").unwrap_or( "0" ).parse::<u32>().unwrap();
 
 	// read the input file
 	let file = File::open( filename ).expect("file not found!");
@@ -90,7 +90,7 @@ fn main() {
 		}
 	}	
 
-	if verbose {
+	if verbose && benchmark <= 1 {
 		println!("\nInput:\n");
 		render( board, verbose );
 	}
@@ -112,16 +112,23 @@ fn main() {
 	let end = SystemTime::now();
 	let elapsed = end.duration_since( start ).unwrap_or_default().as_millis();
 
-	if verbose {
-		println!("\nSolution:\n");
-	}
-	render( solution, verbose );
-	if verbose {
-		if benchmark > 1 {
-			println!( "\nSolved {} times in {} ms ({} steps).\n", benchmark, elapsed, steptotal );
+	if benchmark > 1 {
+		if verbose {
+			println!( "Solved {} times\nTotal time: {} ms\nTotal steps: {}", benchmark, elapsed, steptotal );
+			let avg_ms = ( elapsed as f64 ) / ( benchmark as f64 );
+			let avg_steps = ( steptotal as f64 ) / ( benchmark as f64 );
+			println!( "Average time: {:.2} ms\nAverage steps: {:.2}", avg_ms, avg_steps );
 		} else {
-			println!( "\nSolved in {} ms ({} steps).\n", elapsed, stepcounter );
+			println!( "{}", elapsed );
 		}
+	} else {
+		if verbose {
+			println!("\nSolution:\n");
+		}
+		render( solution, verbose );
+		if verbose {
+			println!( "\nSolved in {} ms ({} steps).\n", elapsed, stepcounter );
+		}		
 	}
 }
 
