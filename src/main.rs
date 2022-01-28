@@ -5,7 +5,7 @@ use std::time::{SystemTime};
 use std::fs::File;
 use std::io::BufReader;
 use std::io::BufRead;
-use std::env;
+use clap::{Arg,App};
 
 
 
@@ -39,41 +39,88 @@ fn main() {
 	};
 
 	// get command line arguments
-	let args: Vec<String> = env::args().collect();
-	let lastarg:&String = &args[ args.len()-1 ];
-	// Check if the last argument is a txt file
-	if lastarg.contains(".txt") {
-		let filename = lastarg;
-		let file = File::open( filename ).expect("file not found!");
-		let reader = BufReader::new(file);
-		// iterate over the loaded fiel by line
-		for ( y, line ) in reader.lines().enumerate() {
-			let row = line.unwrap();
-			if y < 9 {
-				// iterate ovet the characters of the current line
-				for ( x, c ) in row.chars().enumerate() {
-					// if not out of bounds, put the value into the board 
-					if x < 9 {
-						let val = c as i8 - 0x30; // 0x30 is 0's ascii table offset
-						if val >= 0 && val < 9 {
-							board.squares[y][x] = val;	
-						} else {
-							board.squares[y][x] = 0;
-						}
+
+	let args = App::new("sudoku-solver")
+	.version("0.1.0")
+	.about("Solve sudoku puzzles on the command line")
+	.author("Roy Tanck")
+	.args(&[
+		Arg::new("filename")
+			.short('f')
+			.long("filename")
+			.value_name("sudoku.txt")
+			.help("File name of the sudoku puzzle file to solve.")
+			.required(true)
+			.takes_value(true),
+		Arg::new("verbose")
+			.short('v')
+			.long("verbose")
+			.help("Output the solution only, no extra information."),
+		Arg::new("benchmark")
+			.short('b')
+			.long("benchmark")
+			.value_name("100")
+			.help("Run a benchmark by numming the solve multiple times.")
+			.takes_value(true),
+	]).get_matches();
+
+	let filename = args.value_of("filename").unwrap_or("extreme.txt");
+	let verbose:bool = args.is_present("verbose");
+	let benchmark:i32 = args.value_of("benchmark").unwrap_or( "0" ).parse::<i32>().unwrap();
+
+	// read the input file
+	let file = File::open( filename ).expect("file not found!");
+	let reader = BufReader::new(file);
+	// iterate over the loaded file by line
+	for ( y, line ) in reader.lines().enumerate() {
+		let row = line.unwrap();
+		if y < 9 {
+			// iterate ovet the characters of the current line
+			for ( x, c ) in row.chars().enumerate() {
+				// if not out of bounds, put the value into the board 
+				if x < 9 {
+					let val = c as i8 - 0x30; // 0x30 is 0's ascii table offset
+					if val >= 0 && val < 9 {
+						board.squares[y][x] = val;	
+					} else {
+						board.squares[y][x] = 0;
 					}
 				}
 			}
-		}	
-	}
+		}
+	}	
 
-	println!("\nInput:\n");
-	render( board );
+	if !verbose {
+		println!("\nInput:\n");
+		render( board, verbose );
+	}
 
 	let ( solution, stepcounter, elapsed ) = solve( board );
 
-	println!("\nSolution:\n");
-	render( solution );
-	println!( "\nSolved in {} ms ({} steps).\n", elapsed, stepcounter );
+	if !verbose {
+		println!("\nSolution:\n");
+	}
+	render( solution, verbose );
+	if !verbose {
+		println!( "\nSolved in {} ms ({} steps).\n", elapsed, stepcounter );
+	}
+}
+
+
+fn render( board:Board, verbose:bool ){
+	if verbose {
+		for y in 0..board.squares.len() {
+			let mut output = String::from("");
+			for x in 0..9 {
+				output.push_str( &board.squares[y][x].to_string() );
+			}
+			println!( "{}", output );
+		}
+	} else {
+		for i in 0..board.squares.len() {
+			println!("  {:?}", board.squares[i]);
+		}
+	}
 }
 
 
@@ -135,12 +182,6 @@ fn step( board: &mut Board, board_solved: &mut Board, mode: &mut u8 ) -> bool {
 	return false;
 }
 
-
-fn render( board:Board ){
-	for i in 0..board.squares.len() {
-		println!("  {:?}", board.squares[i]);
-	}
-}
 
 
 fn get_empty_positions( board:Board ) -> Vec<Position> {
