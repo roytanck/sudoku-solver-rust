@@ -8,6 +8,7 @@ use std::io::BufRead;
 use std::env;
 
 
+
 #[derive(Copy, Clone, Debug)]
 pub struct Board {
 	squares: [[i8; 9]; 9]
@@ -45,11 +46,11 @@ fn main() {
 		let filename = lastarg;
 		let file = File::open( filename ).expect("file not found!");
 		let reader = BufReader::new(file);
-		// iterate over the loaded file by line
+		// iterate over the loaded fiel by line
 		for ( y, line ) in reader.lines().enumerate() {
 			let row = line.unwrap();
 			if y < 9 {
-				// iterate over the characters of the current line
+				// iterate ovet the characters of the current line
 				for ( x, c ) in row.chars().enumerate() {
 					// if not out of bounds, put the value into the board 
 					if x < 9 {
@@ -110,35 +111,25 @@ fn step( board: &mut Board, board_solved: &mut Board, mode: &mut u8 ) -> bool {
 		return true;
 	}
 
-	// loop through the empty positions, to find the number of possible answers
-	/*let mut lowest = 10;
-	let mut best_empty_position = Position { x:-1, y:-1 };
-	let mut best_empty_position_values:Vec<i8> = Vec::with_capacity(81);
-	
-	for pos in empty.iter() {
-		let possible_values:Vec<i8> = get_possible_values( *board, *pos );
+	// find a position with the lowest number of possible values
+	let ( pos, possible_values ) = get_best_empty_position( &empty, &board );
 
-		if possible_values.len() < lowest {
-			best_empty_position = *pos;
-			best_empty_position_values = Vec::from( possible_values );
-			lowest = best_empty_position_values.len();
-		}
-	}*/
-	let ( best_empty_position, best_empty_position_values ) = get_best_empty_position( &empty, &board );
-
-	if best_empty_position_values.len() < 1 {
+	if possible_values.len() < 1 {
 		// return board to previously know correct state
 		*board = board_solved.clone();
-	} else {
-		if best_empty_position_values.len() > 1 {
+		return false;
+	}
+
+	if *mode == 1 {
+		if possible_values.len() == 1 {
+			board.squares[ pos.y as usize ][ pos.x as usize ] = possible_values[0];
+			board_solved.squares[ pos.y as usize ][ pos.x as usize ] = possible_values[0];
+		} else {
 			*mode = 2;
 		}
-		let val = select_random_value( &best_empty_position_values );
-		board.squares[ best_empty_position.y as usize ][ best_empty_position.x as usize ] = val;
-		if *mode == 1 {
-			// if there's only one option (mode 1), store the guess
-			*board_solved = board.clone();
-		}
+	} else {
+		let guess = select_random_value( &possible_values );
+		board.squares[ pos.y as usize ][ pos.x as usize ] = guess;
 	}
 
 	return false;
