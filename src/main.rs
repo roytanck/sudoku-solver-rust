@@ -8,7 +8,6 @@ use std::io::BufRead;
 use std::env;
 
 
-
 #[derive(Copy, Clone, Debug)]
 pub struct Board {
 	squares: [[i8; 9]; 9]
@@ -46,11 +45,11 @@ fn main() {
 		let filename = lastarg;
 		let file = File::open( filename ).expect("file not found!");
 		let reader = BufReader::new(file);
-		// iterate over the loaded fiel by line
+		// iterate over the loaded file by line
 		for ( y, line ) in reader.lines().enumerate() {
 			let row = line.unwrap();
 			if y < 9 {
-				// iterate ovet the characters of the current line
+				// iterate over the characters of the current line
 				for ( x, c ) in row.chars().enumerate() {
 					// if not out of bounds, put the value into the board 
 					if x < 9 {
