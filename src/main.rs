@@ -95,14 +95,33 @@ fn main() {
 		render( board, verbose );
 	}
 
-	let ( solution, stepcounter, elapsed ) = solve( board );
+	let mut steptotal:u32 = 0;
+	let start = SystemTime::now();
+
+	// if benchmark is set, run that number (minus one) extra solves
+	if benchmark > 1 {
+		for _run in 1..benchmark {
+			let ( _solution, stepcounter ) = solve( board );
+			steptotal += stepcounter;
+		}
+	}
+
+	let ( solution, stepcounter ) = solve( board );
+	steptotal += stepcounter;
+
+	let end = SystemTime::now();
+	let elapsed = end.duration_since( start ).unwrap_or_default().as_millis();
 
 	if !verbose {
 		println!("\nSolution:\n");
 	}
 	render( solution, verbose );
 	if !verbose {
-		println!( "\nSolved in {} ms ({} steps).\n", elapsed, stepcounter );
+		if benchmark > 1 {
+			println!( "\nSolved {} times in {} ms ({} steps).\n", benchmark, elapsed, steptotal );
+		} else {
+			println!( "\nSolved in {} ms ({} steps).\n", elapsed, stepcounter );
+		}
 	}
 }
 
@@ -124,7 +143,7 @@ fn render( board:Board, verbose:bool ){
 }
 
 
-fn solve( input:Board ) -> ( Board, u32, u128 ) {
+fn solve( input:Board ) -> ( Board, u32 ) {
 	// create a mutable copy of the input board
 	let mut board:Board = input.clone();
 	// create another copy to store partial solves
@@ -133,18 +152,14 @@ fn solve( input:Board ) -> ( Board, u32, u128 ) {
 	let mut solved:bool = false;
 	let mut mode:u8 = 1;
 	let mut stepcounter:u32 = 0;
-	let start = SystemTime::now();
 
 	while solved == false {
 		solved = step( &mut board, &mut board_solved, &mut mode );
 		stepcounter += 1;
 	}
 
-	let end = SystemTime::now();
-	let elapsed = end.duration_since( start );
-
 	// return the solution, steps required and milliseconds as tuple
-	( board, stepcounter, elapsed.unwrap_or_default().as_millis() )
+	( board, stepcounter )
 }
 
 
