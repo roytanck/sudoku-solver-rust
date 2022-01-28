@@ -45,17 +45,17 @@ fn main() {
 	.about("Solve sudoku puzzles on the command line")
 	.author("Roy Tanck")
 	.args(&[
-		Arg::new("filename")
-			.short('f')
-			.long("filename")
+		Arg::new("input")
+			.short('i')
+			.long("input")
 			.value_name("sudoku.txt")
-			.help("File name of the sudoku puzzle file to solve.")
+			.help("File name of the sudoku puzzle file to solve (.txt).")
 			.required(true)
 			.takes_value(true),
 		Arg::new("verbose")
 			.short('v')
 			.long("verbose")
-			.help("Output the solution only, no extra information."),
+			.help("Output extra information."),
 		Arg::new("benchmark")
 			.short('b')
 			.long("benchmark")
@@ -64,7 +64,7 @@ fn main() {
 			.takes_value(true),
 	]).get_matches();
 
-	let filename = args.value_of("filename").unwrap_or("extreme.txt");
+	let filename = args.value_of("input").unwrap_or("extreme.txt");
 	let verbose:bool = args.is_present("verbose");
 	let benchmark:i32 = args.value_of("benchmark").unwrap_or( "0" ).parse::<i32>().unwrap();
 
@@ -90,7 +90,7 @@ fn main() {
 		}
 	}	
 
-	if !verbose {
+	if verbose {
 		println!("\nInput:\n");
 		render( board, verbose );
 	}
@@ -112,11 +112,11 @@ fn main() {
 	let end = SystemTime::now();
 	let elapsed = end.duration_since( start ).unwrap_or_default().as_millis();
 
-	if !verbose {
+	if verbose {
 		println!("\nSolution:\n");
 	}
 	render( solution, verbose );
-	if !verbose {
+	if verbose {
 		if benchmark > 1 {
 			println!( "\nSolved {} times in {} ms ({} steps).\n", benchmark, elapsed, steptotal );
 		} else {
@@ -127,7 +127,7 @@ fn main() {
 
 
 fn render( board:Board, verbose:bool ){
-	if verbose {
+	if !verbose {
 		for y in 0..board.squares.len() {
 			let mut output = String::from("");
 			for x in 0..9 {
