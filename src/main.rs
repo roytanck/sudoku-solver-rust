@@ -131,6 +131,7 @@ fn main() {
 
 
 fn render( board:Board, verbose:bool ){
+	// if non-verbose output is requested, render the same format as the input file
 	if !verbose {
 		for y in 0..board.squares.len() {
 			let mut output = String::from("");
@@ -156,36 +157,32 @@ fn solve( input:Board ) -> ( Board, u32 ) {
 	let mut solved:bool = false;
 	let mut mode:u8 = 1;
 	let mut stepcounter:u32 = 0;
-
+	// call the step function until the board is solved
 	while solved == false {
 		solved = step( &mut board, &mut board_solved, &mut mode );
 		stepcounter += 1;
 	}
-
-	// return the solution, steps required and milliseconds as tuple
+	// return the solution, steps required as tuple
 	( board, stepcounter )
 }
 
 
 fn step( board: &mut Board, board_solved: &mut Board, mode: &mut u8 ) -> bool {
-
 	// find empty positions on the board
 	let empty = get_empty_positions( *board );
-
 	// if there are none, the board is solved
 	if empty.len() < 1 {
 		return true;
 	}
-
 	// find a position with the lowest number of possible values
 	let ( pos, possible_values ) = get_best_empty_position( &empty, &board );
-
+	// if a position has 0 possible values, the current attempt is invalid
 	if possible_values.len() < 1 {
 		// return board to previously know correct state
 		*board = board_solved.clone();
 		return false;
 	}
-
+	// mode 1 is known to be correct, mode 2 contains guesses
 	if *mode == 1 {
 		if possible_values.len() == 1 {
 			board.squares[ pos.y as usize ][ pos.x as usize ] = possible_values[0];
@@ -197,15 +194,16 @@ fn step( board: &mut Board, board_solved: &mut Board, mode: &mut u8 ) -> bool {
 		let guess = select_random_value( &possible_values );
 		board.squares[ pos.y as usize ][ pos.x as usize ] = guess;
 	}
-
+	// return false to indicate the board has not been solved in this step
 	return false;
 }
 
 
 
 fn get_empty_positions( board:Board ) -> Vec<Position> {
-	// loop through the empty positions, to find the number of possible answers
+	// create a vector to store the empty positions
 	let mut empty = Vec::<Position>::with_capacity(81);
+	// loop through the board to find positions with value 0
 	for y in 0..board.squares.len() {
 		for x in 0..board.squares[y].len() {
 			if board.squares[y][x] == 0 {
@@ -216,34 +214,35 @@ fn get_empty_positions( board:Board ) -> Vec<Position> {
 	// randomize before returning the vector, to make guesses more random
 	let mut rng = thread_rng();
 	empty.shuffle(&mut rng);
-
+	// return the vector containing all empty positions
 	return empty;
 }
 
 
 fn get_best_empty_position( empty:&Vec<Position>, board:&Board ) -> ( Position, Vec<i8> ) {
+	// create variables to hold the results
 	let mut lowest = 10;
-	let mut best_empty_position = Position { x:-1, y:-1 };
-	let mut best_empty_position_values:Vec<i8> = Vec::with_capacity(81);
-	
+	let mut position = Position { x:-1, y:-1 };
+	let mut values:Vec<i8> = Vec::with_capacity(81);
+	// loop through the empty positions to find the one with the fewest possible values
 	for pos in empty.iter() {
+		// get possible values for the current position
 		let possible_values:Vec<i8> = get_possible_values( *board, *pos );
-
+		// if it is the new champoin, record its values
 		if possible_values.len() < lowest {
-			best_empty_position = *pos;
-			best_empty_position_values = Vec::from( possible_values );
-			lowest = best_empty_position_values.len();
+			position = *pos;
+			values = Vec::from( possible_values );
+			lowest = values.len();
 		}
 	}
 
-	( best_empty_position, best_empty_position_values )
+	( position, values )
 }
 
 
 fn get_possible_values( board:Board, pos:Position ) -> Vec<i8> {
-
+	// create a vector to hold the values that found in a row, column or square
 	let mut excluded_values: Vec<i8> = Vec::with_capacity(9);
-
 	// check row
 	for x in 0..9 {
 		if board.squares[ pos.y as usize ][ x as usize ] != 0 {
@@ -283,7 +282,7 @@ fn get_possible_values( board:Board, pos:Position ) -> Vec<i8> {
 			result.push( i );
 		}
 	}
-
+	// return vector with values that have not been excluded
 	return result;
 }
 
