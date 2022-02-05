@@ -92,13 +92,14 @@ fn main() {
 	// initialize stats variables
 	let mut steptotal:u32 = 0;
 	let mut solvetotal:u32 = 0;
+	let mut solution:Board = Board { squares: [[0; 9] ;9] };
 	let start = SystemTime::now();
 
-	// if benchmark is set, run that number (minus one) extra solves
+	// if benchmark is set, run that number of solves
 	if benchmark > 1 {
 		let workers:u32 = 8;
 		let runs_per_worker:u32 = benchmark / workers;
-		let mut runs_remaining:u32 = benchmark - 1;
+		let mut runs_remaining:u32 = benchmark;
 		let mut handles = Vec::new();
 		for w in 0..workers {
 			// figure out how many solves to outsource to the next thread
@@ -129,12 +130,13 @@ fn main() {
 			steptotal += steps;
 			solvetotal += solves;
 		}
+	} else {
+		// solve the puzzle
+		let ( sol, stepcounter ) = solve( board );
+		steptotal += stepcounter;
+		solution = sol;
+		solvetotal += 1;		
 	}
-
-	// solve the puzzle
-	let ( solution, stepcounter ) = solve( board );
-	steptotal += stepcounter;
-	solvetotal += 1;
 
 	// Calculate elapsed time
 	let end = SystemTime::now();
@@ -156,7 +158,7 @@ fn main() {
 		}
 		render( solution, verbose );
 		if verbose {
-			println!( "\nSolved in {} ms ({} steps).\n", elapsed, stepcounter );
+			println!( "\nSolved in {} ms ({} steps).\n", elapsed, steptotal );
 		}		
 	}
 }
