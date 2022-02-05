@@ -6,6 +6,7 @@ use std::fs::File;
 use std::io::BufReader;
 use std::io::BufRead;
 use clap::{Arg,App};
+use std::thread;
 
 
 
@@ -90,19 +91,50 @@ fn main() {
 
 	// initialize stats variables
 	let mut steptotal:u32 = 0;
+	let mut solvetotal:u32 = 0;
 	let start = SystemTime::now();
 
 	// if benchmark is set, run that number (minus one) extra solves
 	if benchmark > 1 {
-		for _run in 1..benchmark {
-			let ( _solution, stepcounter ) = solve( board );
-			steptotal += stepcounter;
+		let workers:u32 = 8;
+		let runs_per_worker:u32 = benchmark / workers;
+		let mut runs_remaining:u32 = benchmark - 1;
+		let mut handles = Vec::new();
+		for w in 0..workers {
+			// figure out how many solves to outsource to the next thread
+			let mut runs_this_thread = 0;
+			if w < workers -1 {
+				runs_this_thread = runs_per_worker;
+				runs_remaining -= runs_this_thread;
+			} else {
+				runs_this_thread = runs_remaining;
+			}
+			// spawn a new thread
+			let handle = thread::spawn( move ||  {
+				let mut steps:u32 = 0;
+				let mut solves:u32 = 0;
+				for _run in 0..runs_this_thread {
+					let ( _solution, stepcounter ) = solve( board );
+					steps += stepcounter;
+					solves += 1;
+				}
+				( solves, steps )
+			});
+			handles.push( handle );
+		}
+		// wait for all threads and gather stats from them
+		for handle in handles {
+			let thread_stats = handle.join().unwrap();
+			let ( solves, steps ) = thread_stats;
+			steptotal += steps;
+			solvetotal += solves;
 		}
 	}
 
 	// solve the puzzle
 	let ( solution, stepcounter ) = solve( board );
 	steptotal += stepcounter;
+	solvetotal += 1;
 
 	// Calculate elapsed time
 	let end = SystemTime::now();
@@ -111,7 +143,7 @@ fn main() {
 	// post-solve output
 	if benchmark > 1 {
 		if verbose {
-			println!( "Solved {} times\nTotal time: {} ms\nTotal steps: {}", benchmark, elapsed, steptotal );
+			println!( "Solved {} times\nTotal time: {} ms\nTotal steps: {}", solvetotal, elapsed, steptotal );
 			let avg_ms = ( elapsed as f64 ) / ( benchmark as f64 );
 			let avg_steps = ( steptotal as f64 ) / ( benchmark as f64 );
 			println!( "Average time: {:.2} ms\nAverage steps: {:.2}", avg_ms, avg_steps );
