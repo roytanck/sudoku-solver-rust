@@ -32,6 +32,8 @@ A number of example files are provided.
 
 `--benchmark [number]` solves the same puzzle multiple times and provides some statistics.
 
+`--threads [number]` sets the number of CPU threads to use when benchmarking.
+
 ### Examples
 
 Solve the Sudoku in extreme.txt and display input, solution and statisitics:
@@ -49,6 +51,10 @@ Solve 50 times, show only the total numberof milliseconds needed:
 Solve extreme.txt and output the solution to a new file called output.txt:
 
 `sudoku-solver --input extreme.txt > output.txt`
+
+Solve unsolvable.txt 100 times using 3 CPU threads:
+
+`sudoku-solver --input unsolvable.txt --benchmark 100 --threads 3`
 
 ## Javascript original
 * [tanck.nl/sudoku](https://tanck.nl/sudoku/)

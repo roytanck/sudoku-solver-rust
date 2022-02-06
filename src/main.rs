@@ -7,7 +7,7 @@ use std::io::BufReader;
 use std::io::BufRead;
 use clap::{Arg,App};
 use std::thread;
-
+use std::cmp;
 
 
 #[derive(Copy, Clone, Debug)]
@@ -28,7 +28,6 @@ fn main() {
 	let mut board = Board { squares: [[0; 9] ;9] };
 
 	// get command line arguments
-
 	let args = App::new("sudoku-solver")
 	.version("0.1.0")
 	.about("Solve sudoku puzzles on the command line")
@@ -51,11 +50,20 @@ fn main() {
 			.value_name("100")
 			.help("Run a benchmark by numming the solve multiple times.")
 			.takes_value(true),
+		Arg::new("threads")
+			.short('t')
+			.long("threads")
+			.value_name("8")
+			.help("Number of CPU threads to use when benchmarking.")
+			.takes_value(true),
 	]).get_matches();
 
 	let filename = args.value_of("input").unwrap_or("extreme.txt");
 	let verbose:bool = args.is_present("verbose");
 	let benchmark:u32 = args.value_of("benchmark").unwrap_or( "0" ).parse::<u32>().unwrap();
+	let mut threads:u32 = args.value_of("threads").unwrap_or( "8" ).parse::<u32>().unwrap();
+	if threads < 1 { threads = 1; }
+	if threads > benchmark { threads = cmp::min( 256, benchmark ); }
 
 	// read the input file
 	let file = match File::open( &filename ) {
@@ -97,7 +105,7 @@ fn main() {
 
 	// if benchmark is set, run that number of solves
 	if benchmark > 1 {
-		let workers:u32 = 8;
+		let workers:u32 = threads;
 		let runs_per_worker:u32 = benchmark / workers;
 		let mut runs_remaining:u32 = benchmark;
 		let mut handles = Vec::new();
