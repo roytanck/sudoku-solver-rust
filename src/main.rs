@@ -68,7 +68,7 @@ fn main() {
 	for ( y, line ) in reader.lines().enumerate() {
 		let row = line.unwrap();
 		if y < 9 {
-			// iterate ovet the characters of the current line
+			// iterate over the characters of the current line
 			for ( x, c ) in row.chars().enumerate() {
 				// if not out of bounds, put the value into the board 
 				if x < 9 {
