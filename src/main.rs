@@ -11,12 +11,12 @@ use std::cmp;
 
 
 #[derive(Copy, Clone, Debug)]
-pub struct Board {
+struct Board {
 	squares: [[i8; 9]; 9]
 }
 
 #[derive(Copy, Clone, Debug)]
-pub struct Position {
+struct Position {
 	x: i8,
 	y: i8    
 }
@@ -112,9 +112,8 @@ fn main() {
 		let mut handles = Vec::new();
 		for w in 0..workers {
 			// figure out how many solves to outsource to the next thread
-			let mut runs_this_thread = 0;
+			let mut runs_this_thread = runs_per_worker;
 			if w < workers -1 {
-				runs_this_thread = runs_per_worker;
 				runs_remaining -= runs_this_thread;
 			} else {
 				runs_this_thread = runs_remaining;
@@ -124,7 +123,7 @@ fn main() {
 				let mut steps:u32 = 0;
 				let mut solves:u32 = 0;
 				for _run in 0..runs_this_thread {
-					let ( _solution, stepcounter ) = solve( board );
+					let ( _solution, stepcounter ) = solve( &board );
 					steps += stepcounter;
 					solves += 1;
 				}
@@ -141,7 +140,7 @@ fn main() {
 		}
 	} else {
 		// solve the puzzle
-		let ( sol, stepcounter ) = solve( board );
+		let ( sol, stepcounter ) = solve( &board );
 		steptotal += stepcounter;
 		solution = sol;
 		solvetotal += 1;		
@@ -191,7 +190,7 @@ fn render( board:Board, verbose:bool ){
 }
 
 
-fn solve( input:Board ) -> ( Board, u32 ) {
+fn solve( input:&Board ) -> ( Board, u32 ) {
 	// create a mutable copy of the input board
 	let mut board:Board = input.clone();
 	// create another copy to store partial solves
@@ -212,7 +211,7 @@ fn solve( input:Board ) -> ( Board, u32 ) {
 
 fn step( board: &mut Board, board_solved: &mut Board, mode: &mut u8 ) -> bool {
 	// find empty positions on the board
-	let empty = get_empty_positions( *board );
+	let empty = get_empty_positions( &board );
 	// if there are none, the board is solved
 	if empty.len() < 1 {
 		return true;
@@ -243,7 +242,7 @@ fn step( board: &mut Board, board_solved: &mut Board, mode: &mut u8 ) -> bool {
 
 
 
-fn get_empty_positions( board:Board ) -> Vec<Position> {
+fn get_empty_positions( board:&Board ) -> Vec<Position> {
 	// create a vector to store the empty positions
 	let mut empty = Vec::<Position>::with_capacity(81);
 	// loop through the board to find positions with value 0
