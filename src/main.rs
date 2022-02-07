@@ -94,7 +94,7 @@ fn main() {
 	// pre-solve output
 	if verbose && benchmark <= 1 {
 		println!("\nInput:\n");
-		render( board, verbose );
+		render( &board, verbose );
 	}
 
 	// initialize stats variables
@@ -164,7 +164,7 @@ fn main() {
 		if verbose {
 			println!("\nSolution:\n");
 		}
-		render( solution, verbose );
+		render( &solution, verbose );
 		if verbose {
 			println!( "\nSolved in {} ms ({} steps).\n", elapsed, steptotal );
 		}		
@@ -172,7 +172,7 @@ fn main() {
 }
 
 
-fn render( board:Board, verbose:bool ){
+fn render( board:&Board, verbose:bool ){
 	// if non-verbose output is requested, render the same format as the input file
 	if !verbose {
 		for y in 0..board.squares.len() {
@@ -183,13 +183,10 @@ fn render( board:Board, verbose:bool ){
 			println!( "{}", output );
 		}
 	} else {
-		/*for i in 0..board.squares.len() {
-			println!("  {:?}", board.squares[i]);
-		}*/
 		for y in 0..board.squares.len() {
 			let mut output = String::from("");
 			for x in 0..9 {
-				if x % 3 ==0 && x > 0 {
+				if x % 3 == 0 && x > 0 {
 					output.push_str(" | ");
 				}
 				output.push_str( &board.squares[y][x].to_string() );
