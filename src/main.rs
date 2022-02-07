@@ -106,7 +106,8 @@ fn main() {
 	// if benchmark is set, run that number of solves
 	if benchmark > 1 {
 		let workers:u32 = threads;
-		let runs_per_worker:u32 = benchmark / workers;
+		let runs_per_worker_f:f64 = f64::from( benchmark ) / f64::from( workers );
+		let runs_per_worker:u32 = runs_per_worker_f.ceil() as u32;
 		let mut runs_remaining:u32 = benchmark;
 		let mut handles = Vec::new();
 		for w in 0..workers {
@@ -154,8 +155,8 @@ fn main() {
 	if benchmark > 1 {
 		if verbose {
 			println!( "Solved {} times\nTotal time: {} ms\nTotal steps: {}", solvetotal, elapsed, steptotal );
-			let avg_ms = ( elapsed as f64 ) / ( benchmark as f64 );
-			let avg_steps = ( steptotal as f64 ) / ( benchmark as f64 );
+			let avg_ms = elapsed as f64 / benchmark as f64;
+			let avg_steps = steptotal as f64 / benchmark as f64;
 			println!( "Average time: {:.2} ms\nAverage steps: {:.2}", avg_ms, avg_steps );
 		} else {
 			println!( "{}", elapsed );
@@ -289,7 +290,6 @@ fn get_possible_values( board:Board, pos:Position ) -> Vec<i8> {
 	for x in 0..9 {
 		if board.squares[ pos.y as usize ][ x as usize ] != 0 {
 			let val = board.squares[ pos.y as usize ][ x as usize ];
-			//values[ val as usize - 1 ] = -1;
 			if !excluded_values.contains( &val ) {
 				excluded_values.push( val );
 			}
