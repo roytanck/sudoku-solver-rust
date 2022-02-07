@@ -183,8 +183,21 @@ fn render( board:Board, verbose:bool ){
 			println!( "{}", output );
 		}
 	} else {
-		for i in 0..board.squares.len() {
+		/*for i in 0..board.squares.len() {
 			println!("  {:?}", board.squares[i]);
+		}*/
+		for y in 0..board.squares.len() {
+			let mut output = String::from("");
+			for x in 0..9 {
+				if x % 3 ==0 && x > 0 {
+					output.push_str(" | ");
+				}
+				output.push_str( &board.squares[y][x].to_string() );
+			}
+			if y % 3 == 0 && y > 0 {
+				println!( "  ---------------" );
+			}
+			println!( "  {}", output );
 		}
 	}
 }
