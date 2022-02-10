@@ -153,7 +153,7 @@ fn main() {
 	// post-solve output
 	if benchmark > 1 {
 		if verbose {
-			println!( "Solved {} times\nTotal time: {} ms\nTotal steps: {}", solvetotal, elapsed, steptotal );
+			println!( "Solved {} times using {} threads\nTotal time: {} ms\nTotal steps: {}", solvetotal, threads, elapsed, steptotal );
 			let avg_ms = elapsed as f64 / benchmark as f64;
 			let avg_steps = steptotal as f64 / benchmark as f64;
 			println!( "Average time: {:.2} ms\nAverage steps: {:.2}", avg_ms, avg_steps );
@@ -336,7 +336,6 @@ fn get_possible_values( board:Board, pos:Position ) -> Vec<i8> {
 	// return vector with values that have not been excluded
 	return result;
 }
-
 
 
 fn select_random_value( values:&Vec<i8> ) -> i8 {
