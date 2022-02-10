@@ -81,7 +81,7 @@ fn main() {
 				// if not out of bounds, put the value into the board 
 				if x < 9 {
 					let val = c as i8 - 0x30; // 0x30 is 0's ascii table offset
-					if val >= 0 && val < 9 {
+					if val >= 0 && val <= 9 {
 						board.squares[y][x] = val;	
 					} else {
 						board.squares[y][x] = 0;
@@ -189,7 +189,12 @@ fn render( board:&Board, verbose:bool ){
 				if x % 3 == 0 && x > 0 {
 					output.push_str(" | ");
 				}
-				output.push_str( &board.squares[y][x].to_string() );
+				let val = &board.squares[y][x].to_string();
+				if val == "0" {
+					output.push_str( " " );
+				} else {
+					output.push_str( val );
+				}
 			}
 			if y % 3 == 0 && y > 0 {
 				println!( "  ---------------" );
